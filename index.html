@@ -41,7 +41,7 @@
       flex-direction: column;
       align-items: center;
       margin: 20px auto;
-      max-width: 100%;
+      max-width: 90%;
       box-sizing: border-box;
     }
     .keyboard-row {
@@ -51,19 +51,17 @@
       gap: 5px;
     }
     .key {
-      flex: 1;
-      padding: 10px;
-      max-width: 10%;
+      width: calc(8% + 2px); /* Simula la larghezza di una tastiera mobile */
+      height: 40px;
       border: 1px solid #ccc;
-      font-size: 16px;
+      font-size: 14px;
       background-color: #f0f0f0;
       text-transform: uppercase;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 40px;
-      cursor: default;
       color: black;
+      box-sizing: border-box;
     }
     .key.correct { background-color: green; color: white; }
     .key.present { background-color: orange; color: white; }
@@ -105,18 +103,14 @@
     }
 
     /* Adattamento per schermi più piccoli */
-    @media (max-width: 600px) {
+    @media (max-width: 480px) {
       .key {
+        width: calc(9%); /* Più stretto su smartphone verticali */
+        height: 35px;
         font-size: 12px;
-        padding: 5px;
-        min-width: 30px;
-        max-width: 8%;
-      }
-      .keyboard {
-        margin-top: 10px;
       }
       .keyboard-row {
-        gap: 3px;
+        gap: 2px;
       }
     }
   </style>
