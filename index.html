@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lingo - Gioco</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    .grid {
+      display: grid;
+      gap: 10px;
+      margin: 20px auto;
+    }
+    .cell {
+      width: 50px;
+      height: 50px;
+      border: 2px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      text-transform: uppercase;
+    }
+    .correct { background-color: green; color: white; }
+    .present { background-color: orange; color: white; }
+    .absent { background-color: gray; color: white; }
+    input, select {
+      font-size: 18px;
+      padding: 10px;
+      margin: 10px;
+    }
+    button {
+      font-size: 18px;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+    .keyboard {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 5px;
+      max-width: 500px;
+      margin: 20px auto;
+    }
+    .key {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+      font-size: 16px;
+      background-color: #f0f0f0;
+      color: black;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .key.used {
+      background-color: #a9a9a9;
+      cursor: not-allowed;
+    }
+    .message {
+      font-size: 16px;
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Lingo - Gioco di Parole</h1>
+  <label for="difficulty">Seleziona difficoltà:</label>
+  <select id="difficulty">
+    <option value="5">Facile (5 lettere)</option>
+    <option value="6">Medio (6 lettere)</option>
+    <option value="7">Difficile (7 lettere)</option>
+  </select>
+  <button id="start-game">Inizia Gioco</button>
+
+  <div id="game-board" class="grid"></div>
+  <input type="text" id="guess" maxlength="7" placeholder="Scrivi qui la parola">
+  <button id="submit-guess" disabled>Invia</button>
+  <p class="message" id="message"></p>
+
+  <div id="keyboard" class="keyboard"></div>
+
+  <script>
+    const board = document.getElementById('game-board');
+    const guessInput = document.getElementById('guess');
+    const submitButton = document.getElementById('submit-guess');
+    const messageBox = document.getElementById('message');
+    const keyboard = document.getElementById('keyboard');
+    const difficultySelect = document.getElementById('difficulty');
+    const startButton = document.getElementById('start-game');
+
+    const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+    let wordOfTheDay = '';
+    let wordLength = 5;
+    let attempts = 0;
+    const maxAttempts = 6;
+    const usedLetters = new Set();
+
+    // Funzione per creare la griglia di gioco
+    function createGrid(rows, cols) {
+      board.style.gridTemplateColumns = `repeat(${cols}, 50px)`;
+      board.innerHTML = '';
+      for (let i = 0; i < rows * cols; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        board.appendChild(cell);
+      }
+    }
+
+    // Funzione per creare la tastiera virtuale
+    function createKeyboard() {
+      keyboard.innerHTML = '';
+      alphabet.forEach(letter => {
+        const key = document.createElement('div');
+        key.classList.add('key');
+        key.textContent = letter;
+        keyboard.appendChild(key);
+      });
+    }
+
+    // Aggiorna lo stato della tastiera
+    function updateKeyboard(guess) {
+      guess.split('').forEach(letter => {
+        const key = Array.from(keyboard.children).find(k => k.textContent === letter);
+        if (key && !usedLetters.has(letter)) {
+          key.classList.add('used');
+          usedLetters.add(letter);
+        }
+      });
+    }
+
+    // Funzione per controllare il tentativo
+    function checkGuess(guess) {
+      const cells = document.querySelectorAll('.cell');
+      const wordArray = wordOfTheDay.split('');
+      let isCorrect = true;
+
+      guess.split('').forEach((letter, index) => {
+        const cell = cells[attempts * wordLength + index];
+        if (letter === wordArray[index]) {
+          cell.classList.add('correct');
+        } else if (wordArray.includes(letter)) {
+          cell.classList.add('present');
+          isCorrect = false;
+        } else {
+          cell.classList.add('absent');
+          isCorrect = false;
+        }
+        cell.textContent = letter;
+      });
+
+      attempts++;
+      return isCorrect;
+    }
+
+    // Funzione per iniziare il gioco
+    function startGame() {
+      wordLength = parseInt(difficultySelect.value);
+      wordOfTheDay = generateRandomWord(wordLength); // Da sostituire con parola dal backend
+      attempts = 0;
+      usedLetters.clear();
+      messageBox.textContent = '';
+      submitButton.disabled = false;
+      createGrid(maxAttempts, wordLength);
+      createKeyboard();
+      guessInput.value = '';
+      guessInput.maxLength = wordLength;
+    }
+
+    // Genera una parola casuale (placeholder)
+    function generateRandomWord(length) {
+      const words = {
+        5: ['gioco', 'donna', 'uomo'],
+        6: ['estate', 'giorno', 'notte'],
+        7: ['parlare', 'vedremo', 'scriver'],
+      };
+      const list = words[length];
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    // Gestione del tentativo
+    submitButton.addEventListener('click', () => {
+      const guess = guessInput.value.toLowerCase();
+      if (guess.length !== wordLength) {
+        messageBox.textContent = `La parola deve essere di ${wordLength} lettere!`;
+        return;
+      }
+
+      if (attempts >= maxAttempts) {
+        messageBox.textContent = "Hai finito i tentativi! La parola era: " + wordOfTheDay;
+        return;
+      }
+
+      const isCorrect = checkGuess(guess);
+      updateKeyboard(guess);
+
+      if (isCorrect) {
+        messageBox.textContent = "Complimenti! Hai indovinato!";
+        submitButton.disabled = true;
+      } else if (attempts === maxAttempts) {
+        messageBox.textContent = "Hai finito i tentativi! La parola era: " + wordOfTheDay;
+        submitButton.disabled = true;
+      } else {
+        messageBox.textContent = `Tentativo ${attempts} di ${maxAttempts}`;
+      }
+
+      guessInput.value = '';
+    });
+
+    startButton.addEventListener('click', startGame);
+
+    // Avvia il gioco con la difficoltà predefinita
+    startGame();
+  </script>
+</body>
+</html>
