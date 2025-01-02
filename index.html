@@ -36,6 +36,14 @@
     .correct { background-color: green; color: white; }
     .present { background-color: orange; color: white; }
     .absent { background-color: gray; color: white; }
+    .keyboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+      gap: 5px;
+      max-width: 500px;
+      margin: 20px auto;
+      justify-content: center;
+    }
     .key {
       padding: 10px;
       border: 1px solid #ccc;
@@ -49,13 +57,6 @@
     .key.used {
       background-color: #a9a9a9;
       cursor: not-allowed;
-    }
-    .keyboard {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 5px;
-      max-width: 500px;
-      margin: 20px auto;
     }
     #popup {
       display: none;
@@ -121,34 +122,47 @@
     // Crea la tastiera
     function createKeyboard() {
       keyboard.innerHTML = '';
-      alphabet.forEach(letter => {
+      [...alphabet, 'invio'].forEach(letter => {
         const key = document.createElement('div');
         key.classList.add('key');
-        key.textContent = letter;
-        key.addEventListener('click', () => handleLetterInput(letter));
+        key.textContent = letter === 'invio' ? '↵' : letter;
+        key.addEventListener('click', () => handleKey(letter));
         keyboard.appendChild(key);
       });
     }
 
-    // Gestione input tastiera
-    function handleLetterInput(letter) {
-      if (gameOver || currentLetter >= wordLength) return;
-      const cells = document.querySelectorAll('.cell');
-      const cell = cells[currentAttempt * wordLength + currentLetter];
-      cell.textContent = letter;
-      currentLetter++;
+    // Gestione input tastiera fisica e virtuale
+    function handleKey(key) {
+      if (gameOver) return;
+
+      if (key === 'invio') {
+        checkAttempt();
+      } else if (key.length === 1 && currentLetter < wordLength) {
+        const cells = document.querySelectorAll('.cell');
+        const cell = cells[currentAttempt * wordLength + currentLetter];
+        cell.textContent = key;
+        currentLetter++;
+      }
     }
+
+    // Event listener per la tastiera fisica
+    document.addEventListener('keydown', (event) => {
+      const key = event.key.toLowerCase();
+      if (alphabet.includes(key) || key === 'enter') {
+        handleKey(key === 'enter' ? 'invio' : key);
+      }
+    });
 
     // Controllo del tentativo
     function checkAttempt() {
       if (gameOver || currentLetter < wordLength) return;
+
       const guess = Array.from(
         document.querySelectorAll(`.cell:nth-child(n + ${currentAttempt * wordLength + 1}):nth-child(-n + ${(currentAttempt + 1) * wordLength})`)
       ).map(cell => cell.textContent).join('');
 
       const wordArray = wordOfTheDay.split('');
       const guessArray = guess.split('');
-
       const cells = document.querySelectorAll('.cell');
       let correctCount = 0;
 
@@ -157,7 +171,7 @@
         const cell = cells[currentAttempt * wordLength + index];
         if (letter === wordArray[index]) {
           cell.classList.add('correct');
-          wordArray[index] = null; // Rimuovi lettera per evitare falsi positivi
+          wordArray[index] = null;
           correctCount++;
         }
       });
@@ -169,7 +183,7 @@
         const letterIndex = wordArray.indexOf(letter);
         if (letterIndex !== -1) {
           cell.classList.add('present');
-          wordArray[letterIndex] = null; // Rimuovi lettera usata
+          wordArray[letterIndex] = null;
         } else {
           cell.classList.add('absent');
         }
