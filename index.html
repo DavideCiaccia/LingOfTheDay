@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lingo - Gioco</title>
+  <title>Lingo of the Day</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -37,12 +37,16 @@
     .present { background-color: orange; color: white; }
     .absent { background-color: gray; color: white; }
     .keyboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
-      gap: 5px;
-      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       margin: 20px auto;
+    }
+    .keyboard-row {
+      display: flex;
+      gap: 5px;
       justify-content: center;
+      margin-bottom: 10px;
     }
     .key {
       padding: 10px;
@@ -53,11 +57,24 @@
       color: black;
       text-transform: uppercase;
       cursor: pointer;
+      min-width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .key.used {
-      background-color: #6b6b6b; /* Grigio più scuro */
+      background-color: #6b6b6b;
       color: white;
       cursor: not-allowed;
+    }
+    .selection-container {
+      margin: 20px;
+    }
+    .selection-container button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      cursor: pointer;
     }
     #popup {
       display: none;
@@ -83,4 +100,154 @@
   </style>
 </head>
 <body>
-  <h1>Lingo of the Day
+  <h1>Lingo of the Day</h1>
+  
+  <div class="selection-container">
+    <p>Seleziona il numero di lettere:</p>
+    <button onclick="checkAndStartGame(5)">5 Lettere</button>
+    <button onclick="checkAndStartGame(6)">6 Lettere</button>
+    <button onclick="checkAndStartGame(7)">7 Lettere</button>
+  </div>
+  
+  <div id="game-board" class="grid"></div>
+  <div id="keyboard" class="keyboard"></div>
+  <div id="popup">
+    <h2 id="popup-message"></h2>
+    <p id="popup-stats"></p>
+    <p id="popup-percentage"></p>
+    <button id="restart-button">Ricomincia</button>
+  </div>
+
+  <script>
+    const board = document.getElementById('game-board');
+    const keyboard = document.getElementById('keyboard');
+    const popup = document.getElementById('popup');
+    const popupMessage = document.getElementById('popup-message');
+    const popupStats = document.getElementById('popup-stats');
+    const popupPercentage = document.getElementById('popup-percentage');
+    const restartButton = document.getElementById('restart-button');
+
+    const rows = [
+      'qwertyuiop',
+      'asdfghjkl',
+      'zxcvbnm↵'
+    ];
+    const words = {
+      5: ["donna", "piano", "volto", "gioco", "tempo", "luce"],
+      6: ["tavola", "storia", "mondo", "parola", "strada", "vento"],
+      7: ["parlare", "scriver", "scienze", "madonna", "studente", "guardare"]
+    };
+
+    let wordOfTheDay = '';
+    let wordLength = 0;
+    let maxAttempts = 6;
+    let currentAttempt = 0;
+    let currentLetter = 0;
+    let gameOver = false;
+    let stats = { wins: 0, losses: 0, attempts: 0 };
+
+    // Controlla se il gioco è già stato completato per il tipo scelto
+    function checkAndStartGame(length) {
+      const today = new Date().toISOString().slice(0, 10); // Data di oggi
+      const playedGames = JSON.parse(localStorage.getItem('playedGames')) || {};
+
+      if (playedGames[length] === today) {
+        alert(`Hai già completato il gioco per ${length} lettere oggi. Riprova domani!`);
+      } else {
+        startGame(length);
+      }
+    }
+
+    // Salva il completamento del gioco
+    function saveGameCompletion(length) {
+      const today = new Date().toISOString().slice(0, 10);
+      const playedGames = JSON.parse(localStorage.getItem('playedGames')) || {};
+      playedGames[length] = today;
+      localStorage.setItem('playedGames', JSON.stringify(playedGames));
+    }
+
+    // Avvia il gioco con il numero di lettere selezionato
+    function startGame(length) {
+      wordLength = length;
+      wordOfTheDay = words[length][Math.floor(Math.random() * words[length].length)];
+      currentAttempt = 0;
+      currentLetter = 0;
+      gameOver = false;
+
+      createGrid();
+      createKeyboard();
+    }
+
+    // Crea la griglia
+    function createGrid() {
+      board.style.gridTemplateColumns = `repeat(${wordLength}, 50px)`;
+      board.innerHTML = '';
+      for (let i = 0; i < maxAttempts * wordLength; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        board.appendChild(cell);
+      }
+    }
+
+    // Crea la tastiera
+    function createKeyboard() {
+      keyboard.innerHTML = '';
+      rows.forEach(row => {
+        const keyboardRow = document.createElement('div');
+        keyboardRow.classList.add('keyboard-row');
+        row.split('').forEach(letter => {
+          const key = document.createElement('div');
+          key.classList.add('key');
+          key.textContent = letter === '↵' ? 'Invio' : letter.toUpperCase();
+          key.addEventListener('click', () => handleKey(letter === '↵' ? 'invio' : letter));
+          keyboardRow.appendChild(key);
+        });
+        keyboard.appendChild(keyboardRow);
+      });
+    }
+
+    // Controllo del tentativo
+    function checkAttempt() {
+      if (gameOver || currentLetter < wordLength) return;
+
+      const guess = Array.from(
+        document.querySelectorAll(`.cell:nth-child(n + ${currentAttempt * wordLength + 1}):nth-child(-n + ${(currentAttempt + 1) * wordLength})`)
+      ).map(cell => cell.textContent).join('');
+
+      if (guess.toLowerCase() === wordOfTheDay) {
+        endGame(true);
+        saveGameCompletion(wordLength);
+      } else if (currentAttempt === maxAttempts - 1) {
+        endGame(false);
+        saveGameCompletion(wordLength);
+      }
+
+      currentAttempt++;
+      currentLetter = 0;
+    }
+
+    // Fine gioco
+    function endGame(victory) {
+      gameOver = true;
+      stats.attempts++;
+      if (victory) {
+        stats.wins++;
+        popupMessage.textContent = "Vittoria!";
+      } else {
+        stats.losses++;
+        popupMessage.textContent = "Sconfitta!";
+      }
+      const winRate = ((stats.wins / stats.attempts) * 100).toFixed(2);
+      popupStats.textContent = `Tentativi totali: ${stats.attempts}`;
+      popupPercentage.textContent = `Percentuale di vittoria: ${winRate}%`;
+      popup.style.display = "block";
+    }
+
+    // Ricomincia il gioco
+    restartButton.addEventListener('click', () => {
+      popup.style.display = "none";
+      startGame(wordLength);
+    });
+  </script>
+</body>
+</html>
