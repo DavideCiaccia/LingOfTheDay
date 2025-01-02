@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lingo of the Day </title>
+  <title>Lingo - Gioco</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -55,7 +55,8 @@
       cursor: pointer;
     }
     .key.used {
-      background-color: #a9a9a9;
+      background-color: #6b6b6b; /* Grigio più scuro */
+      color: white;
       cursor: not-allowed;
     }
     #popup {
@@ -82,148 +83,4 @@
   </style>
 </head>
 <body>
-  <h1>Lingo - Gioco di Parole</h1>
-  <div id="game-board" class="grid"></div>
-  <div id="keyboard" class="keyboard"></div>
-  <div id="popup">
-    <h2 id="popup-message"></h2>
-    <p id="popup-stats"></p>
-    <button id="restart-button">Ricomincia</button>
-  </div>
-
-  <script>
-    const board = document.getElementById('game-board');
-    const keyboard = document.getElementById('keyboard');
-    const popup = document.getElementById('popup');
-    const popupMessage = document.getElementById('popup-message');
-    const popupStats = document.getElementById('popup-stats');
-    const restartButton = document.getElementById('restart-button');
-
-    const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
-    const wordOfTheDay = "donna";
-    const maxAttempts = 6;
-    let wordLength = wordOfTheDay.length;
-    let currentAttempt = 0;
-    let currentLetter = 0;
-    let gameOver = false;
-    let stats = { wins: 0, losses: 0, attempts: 0 };
-
-    // Crea la griglia
-    function createGrid() {
-      board.style.gridTemplateColumns = `repeat(${wordLength}, 50px)`;
-      board.innerHTML = '';
-      for (let i = 0; i < maxAttempts * wordLength; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        board.appendChild(cell);
-      }
-    }
-
-    // Crea la tastiera
-    function createKeyboard() {
-      keyboard.innerHTML = '';
-      [...alphabet, 'invio'].forEach(letter => {
-        const key = document.createElement('div');
-        key.classList.add('key');
-        key.textContent = letter === 'invio' ? '↵' : letter;
-        key.addEventListener('click', () => handleKey(letter));
-        keyboard.appendChild(key);
-      });
-    }
-
-    // Gestione input tastiera fisica e virtuale
-    function handleKey(key) {
-      if (gameOver) return;
-
-      if (key === 'invio') {
-        checkAttempt();
-      } else if (key.length === 1 && currentLetter < wordLength) {
-        const cells = document.querySelectorAll('.cell');
-        const cell = cells[currentAttempt * wordLength + currentLetter];
-        cell.textContent = key;
-        currentLetter++;
-      }
-    }
-
-    // Event listener per la tastiera fisica
-    document.addEventListener('keydown', (event) => {
-      const key = event.key.toLowerCase();
-      if (alphabet.includes(key) || key === 'enter') {
-        handleKey(key === 'enter' ? 'invio' : key);
-      }
-    });
-
-    // Controllo del tentativo
-    function checkAttempt() {
-      if (gameOver || currentLetter < wordLength) return;
-
-      const guess = Array.from(
-        document.querySelectorAll(`.cell:nth-child(n + ${currentAttempt * wordLength + 1}):nth-child(-n + ${(currentAttempt + 1) * wordLength})`)
-      ).map(cell => cell.textContent).join('');
-
-      const wordArray = wordOfTheDay.split('');
-      const guessArray = guess.split('');
-      const cells = document.querySelectorAll('.cell');
-      let correctCount = 0;
-
-      // Primo passaggio: lettere corrette
-      guessArray.forEach((letter, index) => {
-        const cell = cells[currentAttempt * wordLength + index];
-        if (letter === wordArray[index]) {
-          cell.classList.add('correct');
-          wordArray[index] = null;
-          correctCount++;
-        }
-      });
-
-      // Secondo passaggio: lettere presenti
-      guessArray.forEach((letter, index) => {
-        const cell = cells[currentAttempt * wordLength + index];
-        if (cell.classList.contains('correct')) return;
-        const letterIndex = wordArray.indexOf(letter);
-        if (letterIndex !== -1) {
-          cell.classList.add('present');
-          wordArray[letterIndex] = null;
-        } else {
-          cell.classList.add('absent');
-        }
-      });
-
-      // Controlla vittoria o sconfitta
-      currentAttempt++;
-      currentLetter = 0;
-      if (correctCount === wordLength) endGame(true);
-      else if (currentAttempt === maxAttempts) endGame(false);
-    }
-
-    // Fine gioco
-    function endGame(victory) {
-      gameOver = true;
-      if (victory) {
-        stats.wins++;
-        popupMessage.textContent = "Vittoria!";
-      } else {
-        stats.losses++;
-        popupMessage.textContent = "Sconfitta!";
-      }
-      stats.attempts = currentAttempt;
-      popupStats.textContent = `Statistiche: Tentativi - ${stats.attempts}, Vittorie - ${stats.wins}, Sconfitte - ${stats.losses}`;
-      popup.style.display = "block";
-    }
-
-    // Ricomincia il gioco
-    restartButton.addEventListener('click', () => {
-      popup.style.display = "none";
-      currentAttempt = 0;
-      currentLetter = 0;
-      gameOver = false;
-      createGrid();
-      createKeyboard();
-    });
-
-    // Inizializzazione
-    createGrid();
-    createKeyboard();
-  </script>
-</body>
-</html>
+  <h1>Lingo of the Day
