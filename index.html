@@ -204,9 +204,15 @@
 
     inputHelper.addEventListener('input', (e) => {
       const key = e.target.value.toLowerCase();
-      if (key) {
+      if (key.match(/^[a-z]$/)) {
         handleKey(key);
-        inputHelper.value = '';
+      }
+      inputHelper.value = '';
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Enter') {
+        handleKey(e.key.toLowerCase());
       }
     });
   </script>
