@@ -67,7 +67,7 @@
 <body>
   <h1>Lingo of the Day</h1>
 
-  <input type="text" id="input-helper" maxlength="1" />
+  <input type="text" id="input-helper" maxlength="1" autocomplete="off" />
 
   <div class="selection-container">
     <p>Seleziona il numero di lettere:</p>
@@ -110,7 +110,7 @@
 
       document.querySelector('.selection-container').style.display = 'none';
       createGrid();
-      inputHelper.focus();
+      focusInput();
     }
 
     function createGrid() {
@@ -121,6 +121,11 @@
         cell.classList.add('cell');
         board.appendChild(cell);
       }
+    }
+
+    function focusInput() {
+      inputHelper.value = '';
+      inputHelper.focus();
     }
 
     function handleKey(key) {
@@ -182,6 +187,7 @@
       } else {
         currentAttempt++;
         currentLetter = 0;
+        focusInput();
       }
     }
 
@@ -205,6 +211,7 @@
     });
 
     document.addEventListener('keydown', (e) => {
+      if (e.target !== inputHelper) return; // Ignora eventi esterni all'input
       const key = e.key.toLowerCase();
       if (key === 'backspace' || key === 'enter' || key.match(/^[a-z]$/)) {
         handleKey(key);
