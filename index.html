@@ -104,9 +104,9 @@
   
   <div class="selection-container">
     <p>Seleziona il numero di lettere:</p>
-    <button onclick="checkAndStartGame(5)">5 Lettere</button>
-    <button onclick="checkAndStartGame(6)">6 Lettere</button>
-    <button onclick="checkAndStartGame(7)">7 Lettere</button>
+    <button onclick="startGame(5)">5 Lettere</button>
+    <button onclick="startGame(6)">6 Lettere</button>
+    <button onclick="startGame(7)">7 Lettere</button>
   </div>
   
   <div id="game-board" class="grid"></div>
@@ -114,7 +114,6 @@
   <div id="popup">
     <h2 id="popup-message"></h2>
     <p id="popup-stats"></p>
-    <p id="popup-percentage"></p>
     <button id="restart-button">Ricomincia</button>
   </div>
 
@@ -124,7 +123,6 @@
     const popup = document.getElementById('popup');
     const popupMessage = document.getElementById('popup-message');
     const popupStats = document.getElementById('popup-stats');
-    const popupPercentage = document.getElementById('popup-percentage');
     const restartButton = document.getElementById('restart-button');
 
     const rows = [
@@ -145,13 +143,14 @@
     let currentLetter = 0;
     let gameOver = false;
 
-    // Controlla se il gioco è già stato completato per il tipo scelto
-    function checkAndStartGame(length) {
+    // Avvia il gioco
+    function startGame(length) {
       wordLength = length;
       wordOfTheDay = words[length][Math.floor(Math.random() * words[length].length)];
       currentAttempt = 0;
       currentLetter = 0;
       gameOver = false;
+
       createGrid();
       createKeyboard();
     }
@@ -184,7 +183,7 @@
       });
     }
 
-    // Gestione input tastiera fisica e virtuale
+    // Gestione input tastiera
     function handleKey(key) {
       if (gameOver) return;
 
@@ -205,7 +204,7 @@
       }
     }
 
-    // Event listener per la tastiera fisica
+    // Event listener per tastiera fisica
     document.addEventListener('keydown', (event) => {
       const key = event.key.toLowerCase();
       if (rows.join('').includes(key) || key === 'enter' || key === 'backspace') {
@@ -219,9 +218,9 @@
 
       const guess = Array.from(
         document.querySelectorAll(`.cell:nth-child(n + ${currentAttempt * wordLength + 1}):nth-child(-n + ${(currentAttempt + 1) * wordLength})`)
-      ).map(cell => cell.textContent).join('');
+      ).map(cell => cell.textContent).join('').toLowerCase();
 
-      if (guess.toLowerCase() === wordOfTheDay) {
+      if (guess === wordOfTheDay) {
         endGame(true);
       } else if (currentAttempt === maxAttempts - 1) {
         endGame(false);
@@ -234,14 +233,14 @@
     // Fine gioco
     function endGame(victory) {
       gameOver = true;
-      popupMessage.textContent = victory ? "Vittoria!" : "Sconfitta!";
+      popupMessage.textContent = victory ? "Vittoria!" : `Sconfitta! La parola era: ${wordOfTheDay}`;
       popup.style.display = "block";
     }
 
     // Ricomincia il gioco
     restartButton.addEventListener('click', () => {
       popup.style.display = "none";
-      checkAndStartGame(wordLength);
+      startGame(wordLength);
     });
   </script>
 </body>
