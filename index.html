@@ -108,6 +108,7 @@
       currentLetter = 0;
       gameOver = false;
 
+      document.querySelector('.selection-container').style.display = 'none';
       createGrid();
       inputHelper.focus();
     }
@@ -192,7 +193,23 @@
 
     restartButton.addEventListener('click', () => {
       popup.style.display = "none";
-      startGame(wordLength);
+      document.querySelector('.selection-container').style.display = 'block';
     });
 
-    input
+    inputHelper.addEventListener('input', (e) => {
+      const key = e.target.value.toLowerCase();
+      if (key) {
+        handleKey(key);
+        inputHelper.value = '';
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      if (key === 'backspace' || key === 'enter' || key.match(/^[a-z]$/)) {
+        handleKey(key);
+      }
+    });
+  </script>
+</body>
+</html>
