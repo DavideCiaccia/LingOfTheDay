@@ -41,14 +41,19 @@
       flex-direction: column;
       align-items: center;
       margin: 20px auto;
+      max-width: 100%;
+      box-sizing: border-box;
     }
     .keyboard-row {
       display: flex;
-      gap: 5px;
       justify-content: center;
+      margin-bottom: 5px;
+      gap: 5px;
     }
     .key {
+      flex: 1;
       padding: 10px;
+      max-width: 10%;
       border: 1px solid #ccc;
       font-size: 16px;
       background-color: #f0f0f0;
@@ -57,7 +62,6 @@
       align-items: center;
       justify-content: center;
       min-width: 40px;
-      min-height: 40px;
       cursor: default;
       color: black;
     }
@@ -90,6 +94,15 @@
       font-size: 16px;
       cursor: pointer;
     }
+    #open-keyboard {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -106,6 +119,7 @@
   
   <div id="game-board" class="grid"></div>
   <div class="keyboard" id="keyboard"></div>
+  <button id="open-keyboard" onclick="focusInput()">Apri Tastiera</button>
   <div id="popup">
     <h2 id="popup-message"></h2>
     <button id="restart-button">Ricomincia</button>
@@ -130,7 +144,6 @@
     let currentAttempt = 0;
     let currentLetter = 0;
     let gameOver = false;
-    const alphabet = "abcdefghijklmnopqrstuvwxyz";
 
     function startGame(length) {
       wordLength = length;
