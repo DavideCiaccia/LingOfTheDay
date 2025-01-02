@@ -36,41 +36,31 @@
     .correct { background-color: green; color: white; }
     .present { background-color: orange; color: white; }
     .absent { background-color: gray; color: white; }
-    .keyboard {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 20px auto;
-    }
-    .keyboard-row {
-      display: flex;
-      gap: 5px;
-      justify-content: center;
-      margin-bottom: 10px;
-    }
-    .key {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: center;
-      font-size: 16px;
-      background-color: #f0f0f0;
-      color: black;
-      text-transform: uppercase;
-      cursor: pointer;
-      min-width: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .key.used {
-      background-color: #6b6b6b;
-      color: white;
-      cursor: not-allowed;
-    }
     #input-helper {
       position: absolute;
       top: -100px;
       opacity: 0;
+    }
+    #popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border: 2px solid black;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      z-index: 1000;
+    }
+    #popup h2 {
+      margin: 0 0 10px;
+    }
+    #popup button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -87,7 +77,6 @@
   </div>
   
   <div id="game-board" class="grid"></div>
-  <div id="keyboard" class="keyboard"></div>
   <div id="popup">
     <h2 id="popup-message"></h2>
     <button id="restart-button">Ricomincia</button>
@@ -95,13 +84,11 @@
 
   <script>
     const board = document.getElementById('game-board');
-    const keyboard = document.getElementById('keyboard');
+    const inputHelper = document.getElementById('input-helper');
     const popup = document.getElementById('popup');
     const popupMessage = document.getElementById('popup-message');
     const restartButton = document.getElementById('restart-button');
-    const inputHelper = document.getElementById('input-helper');
 
-    const rows = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm↵'];
     const words = {
       5: ["donna", "piano", "volto", "gioco", "tempo"],
       6: ["tavola", "storia", "mondo", "parola", "strada"],
@@ -122,8 +109,6 @@
       gameOver = false;
 
       createGrid();
-      createKeyboard();
-
       inputHelper.focus();
     }
 
@@ -137,36 +122,19 @@
       }
     }
 
-    function createKeyboard() {
-      keyboard.innerHTML = '';
-      rows.forEach(row => {
-        const keyboardRow = document.createElement('div');
-        keyboardRow.classList.add('keyboard-row');
-        row.split('').forEach(letter => {
-          const key = document.createElement('div');
-          key.classList.add('key');
-          key.textContent = letter === '↵' ? 'Invio' : letter.toUpperCase();
-          key.addEventListener('click', () => handleKey(letter === '↵' ? 'invio' : letter));
-          keyboardRow.appendChild(key);
-        });
-        keyboard.appendChild(keyboardRow);
-      });
-    }
-
     function handleKey(key) {
       if (gameOver) return;
 
-      if (key === 'invio') {
-        checkAttempt();
-      } else if (key === 'backspace') {
+      const cells = document.querySelectorAll('.cell');
+      if (key === 'backspace') {
         if (currentLetter > 0) {
           currentLetter--;
-          const cells = document.querySelectorAll('.cell');
           const cell = cells[currentAttempt * wordLength + currentLetter];
           cell.textContent = '';
         }
-      } else if (key.length === 1 && currentLetter < wordLength) {
-        const cells = document.querySelectorAll('.cell');
+      } else if (key === 'enter') {
+        checkAttempt();
+      } else if (key.match(/^[a-z]$/) && currentLetter < wordLength) {
         const cell = cells[currentAttempt * wordLength + currentLetter];
         cell.textContent = key.toUpperCase();
         currentLetter++;
@@ -180,14 +148,40 @@
         document.querySelectorAll(`.cell:nth-child(n + ${currentAttempt * wordLength + 1}):nth-child(-n + ${(currentAttempt + 1) * wordLength})`)
       ).map(cell => cell.textContent).join('').toLowerCase();
 
-      if (guess === wordOfTheDay) {
+      const cells = document.querySelectorAll('.cell');
+      const wordArray = wordOfTheDay.split('');
+      let correctCount = 0;
+
+      // Primo passaggio: lettere corrette
+      guess.split('').forEach((letter, index) => {
+        const cell = cells[currentAttempt * wordLength + index];
+        if (letter === wordArray[index]) {
+          cell.classList.add('correct');
+          wordArray[index] = null;
+          correctCount++;
+        }
+      });
+
+      // Secondo passaggio: lettere presenti
+      guess.split('').forEach((letter, index) => {
+        const cell = cells[currentAttempt * wordLength + index];
+        if (cell.classList.contains('correct')) return;
+        if (wordArray.includes(letter)) {
+          cell.classList.add('present');
+          wordArray[wordArray.indexOf(letter)] = null;
+        } else {
+          cell.classList.add('absent');
+        }
+      });
+
+      if (correctCount === wordLength) {
         endGame(true);
       } else if (currentAttempt === 5) {
         endGame(false);
+      } else {
+        currentAttempt++;
+        currentLetter = 0;
       }
-
-      currentAttempt++;
-      currentLetter = 0;
     }
 
     function endGame(victory) {
@@ -201,20 +195,4 @@
       startGame(wordLength);
     });
 
-    inputHelper.addEventListener('input', (e) => {
-      const key = e.target.value.toLowerCase();
-      if (key) {
-        handleKey(key);
-        inputHelper.value = '';
-      }
-    });
-
-    document.addEventListener('keydown', (e) => {
-      const key = e.key.toLowerCase();
-      if (rows.join('').includes(key) || key === 'enter' || key === 'backspace') {
-        handleKey(key === 'enter' ? 'invio' : key);
-      }
-    });
-  </script>
-</body>
-</html>
+    input
