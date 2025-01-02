@@ -209,14 +209,6 @@
         inputHelper.value = '';
       }
     });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.target !== inputHelper) return; // Ignora eventi esterni all'input
-      const key = e.key.toLowerCase();
-      if (key === 'backspace' || key === 'enter' || key.match(/^[a-z]$/)) {
-        handleKey(key);
-      }
-    });
   </script>
 </body>
 </html>
