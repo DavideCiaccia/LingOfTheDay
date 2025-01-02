@@ -67,41 +67,18 @@
       color: white;
       cursor: not-allowed;
     }
-    .selection-container {
-      margin: 20px;
-    }
-    .selection-container button {
-      padding: 10px 20px;
-      margin: 5px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #popup {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: white;
-      padding: 20px;
-      border: 2px solid black;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      text-align: center;
-      z-index: 1000;
-    }
-    #popup h2 {
-      margin: 0 0 10px;
-    }
-    #popup button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
+    #input-helper {
+      position: absolute;
+      top: -100px;
+      opacity: 0;
     }
   </style>
 </head>
 <body>
   <h1>Lingo of the Day</h1>
-  
+
+  <input type="text" id="input-helper" maxlength="1" />
+
   <div class="selection-container">
     <p>Seleziona il numero di lettere:</p>
     <button onclick="startGame(5)">5 Lettere</button>
@@ -113,7 +90,6 @@
   <div id="keyboard" class="keyboard"></div>
   <div id="popup">
     <h2 id="popup-message"></h2>
-    <p id="popup-stats"></p>
     <button id="restart-button">Ricomincia</button>
   </div>
 
@@ -122,28 +98,22 @@
     const keyboard = document.getElementById('keyboard');
     const popup = document.getElementById('popup');
     const popupMessage = document.getElementById('popup-message');
-    const popupStats = document.getElementById('popup-stats');
     const restartButton = document.getElementById('restart-button');
+    const inputHelper = document.getElementById('input-helper');
 
-    const rows = [
-      'qwertyuiop',
-      'asdfghjkl',
-      'zxcvbnm↵'
-    ];
+    const rows = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm↵'];
     const words = {
-      5: ["donna", "piano", "volto", "gioco", "tempo", "luce"],
-      6: ["tavola", "storia", "mondo", "parola", "strada", "vento"],
-      7: ["parlare", "scriver", "scienze", "madonna", "studente", "guardare"]
+      5: ["donna", "piano", "volto", "gioco", "tempo"],
+      6: ["tavola", "storia", "mondo", "parola", "strada"],
+      7: ["parlare", "scriver", "scienze", "madonna", "studente"]
     };
 
     let wordOfTheDay = '';
     let wordLength = 0;
-    let maxAttempts = 6;
     let currentAttempt = 0;
     let currentLetter = 0;
     let gameOver = false;
 
-    // Avvia il gioco
     function startGame(length) {
       wordLength = length;
       wordOfTheDay = words[length][Math.floor(Math.random() * words[length].length)];
@@ -153,20 +123,20 @@
 
       createGrid();
       createKeyboard();
+
+      inputHelper.focus();
     }
 
-    // Crea la griglia
     function createGrid() {
       board.style.gridTemplateColumns = `repeat(${wordLength}, 50px)`;
       board.innerHTML = '';
-      for (let i = 0; i < maxAttempts * wordLength; i++) {
+      for (let i = 0; i < 6 * wordLength; i++) {
         const cell = document.createElement('div');
         cell.classList.add('cell');
         board.appendChild(cell);
       }
     }
 
-    // Crea la tastiera
     function createKeyboard() {
       keyboard.innerHTML = '';
       rows.forEach(row => {
@@ -183,7 +153,6 @@
       });
     }
 
-    // Gestione input tastiera
     function handleKey(key) {
       if (gameOver) return;
 
@@ -204,17 +173,8 @@
       }
     }
 
-    // Event listener per tastiera fisica
-    document.addEventListener('keydown', (event) => {
-      const key = event.key.toLowerCase();
-      if (rows.join('').includes(key) || key === 'enter' || key === 'backspace') {
-        handleKey(key === 'enter' ? 'invio' : key);
-      }
-    });
-
-    // Controllo del tentativo
     function checkAttempt() {
-      if (gameOver || currentLetter < wordLength) return;
+      if (currentLetter < wordLength || gameOver) return;
 
       const guess = Array.from(
         document.querySelectorAll(`.cell:nth-child(n + ${currentAttempt * wordLength + 1}):nth-child(-n + ${(currentAttempt + 1) * wordLength})`)
@@ -222,7 +182,7 @@
 
       if (guess === wordOfTheDay) {
         endGame(true);
-      } else if (currentAttempt === maxAttempts - 1) {
+      } else if (currentAttempt === 5) {
         endGame(false);
       }
 
@@ -230,17 +190,30 @@
       currentLetter = 0;
     }
 
-    // Fine gioco
     function endGame(victory) {
       gameOver = true;
       popupMessage.textContent = victory ? "Vittoria!" : `Sconfitta! La parola era: ${wordOfTheDay}`;
       popup.style.display = "block";
     }
 
-    // Ricomincia il gioco
     restartButton.addEventListener('click', () => {
       popup.style.display = "none";
       startGame(wordLength);
+    });
+
+    inputHelper.addEventListener('input', (e) => {
+      const key = e.target.value.toLowerCase();
+      if (key) {
+        handleKey(key);
+        inputHelper.value = '';
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      if (rows.join('').includes(key) || key === 'enter' || key === 'backspace') {
+        handleKey(key === 'enter' ? 'invio' : key);
+      }
     });
   </script>
 </body>
