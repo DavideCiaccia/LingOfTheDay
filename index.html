@@ -75,11 +75,17 @@
 
         .keyboard {
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             gap: 5px;
             margin: 20px auto;
             max-width: 400px;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
         }
 
         .key {
@@ -177,34 +183,40 @@
             const keyboard = document.getElementById("keyboard");
             keyboard.innerHTML = "";
 
-            const keys = "qwertyuiopasdfghjklzxcvbnm".split("");
-            keys.forEach((key) => {
-                const button = document.createElement("button");
-                button.innerText = key;
-                button.classList.add("key");
-                button.onclick = () => handleKeyPress(key);
-                keyboard.appendChild(button);
+            // Layout QWERTY
+            const rows = [
+                "qwertyuiop".split(""),
+                "asdfghjkl".split(""),
+                ["enter", ..."zxcvbnm".split(""), "backspace"]
+            ];
+
+            rows.forEach((row) => {
+                const rowDiv = document.createElement("div");
+                rowDiv.classList.add("keyboard-row");
+
+                row.forEach((key) => {
+                    const button = document.createElement("button");
+                    button.classList.add("key");
+                    button.innerText = key === "enter" ? "INVIO" : key === "backspace" ? "⌫" : key.toUpperCase();
+                    button.id = key === "enter" ? "enter" : key === "backspace" ? "backspace" : "";
+                    button.onclick = () => handleKeyPress(key);
+                    rowDiv.appendChild(button);
+                });
+
+                keyboard.appendChild(rowDiv);
             });
-
-            const enterKey = document.createElement("button");
-            enterKey.id = "enter";
-            enterKey.innerText = "INVIO";
-            enterKey.classList.add("key");
-            enterKey.onclick = handleEnter;
-            keyboard.appendChild(enterKey);
-
-            const backspaceKey = document.createElement("button");
-            backspaceKey.id = "backspace";
-            backspaceKey.innerText = "⌫";
-            backspaceKey.classList.add("key");
-            backspaceKey.onclick = handleBackspace;
-            keyboard.appendChild(backspaceKey);
         }
 
-        function handleKeyPress(letter) {
-            if (currentGuess.length < currentWord.length) {
-                currentGuess += letter;
-                updateCurrentRow();
+        function handleKeyPress(key) {
+            if (key === "enter") {
+                handleEnter();
+            } else if (key === "backspace") {
+                handleBackspace();
+            } else if (/^[a-z]$/i.test(key)) {
+                if (currentGuess.length < currentWord.length) {
+                    currentGuess += key;
+                    updateCurrentRow();
+                }
             }
         }
 
