@@ -103,8 +103,6 @@
       border: none;
       cursor: pointer;
     }
-
-    /* Adattamenti per schermi più piccoli */
     @media (max-width: 768px) {
       .key {
         width: calc(10% - 5px);
@@ -138,7 +136,6 @@
   <button id="open-keyboard" onclick="focusInput()">Apri Tastiera</button>
   <div id="popup">
     <h2 id="popup-message"></h2>
-    <p id="stats-message"></p>
     <button id="restart-button">Ricomincia</button>
   </div>
 
@@ -148,7 +145,6 @@
     const keyboard = document.getElementById('keyboard');
     const popup = document.getElementById('popup');
     const popupMessage = document.getElementById('popup-message');
-    const statsMessage = document.getElementById('stats-message');
     const restartButton = document.getElementById('restart-button');
 
     const words = {
@@ -163,22 +159,12 @@
       7: ""
     };
 
-    const stats = {
-      wins: { 5: 0, 6: 0, 7: 0 },
-      losses: { 5: 0, 6: 0, 7: 0 },
-      attempts: { 5: [], 6: [], 7: [] }
-    };
-
-    function initializeDailyWords() {
-      const today = new Date().toDateString();
-      if (!dailyWords[5]) dailyWords[5] = words[5][Math.floor(Math.random() * words[5].length)];
-      if (!dailyWords[6]) dailyWords[6] = words[6][Math.floor(Math.random() * words[6].length)];
-      if (!dailyWords[7]) dailyWords[7] = words[7][Math.floor(Math.random() * words[7].length)];
-    }
+    let wordOfTheDay = "";
+    let currentLength = 0;
 
     function startGame(length) {
-      initializeDailyWords();
-      wordOfTheDay = dailyWords[length];
+      currentLength = length;
+      wordOfTheDay = words[length][Math.floor(Math.random() * words[length].length)];
       document.querySelector('.selection-container').style.display = 'none';
       createGrid(length);
       createKeyboard();
@@ -218,13 +204,13 @@
     }
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace' || e.key === 'Enter') focusInput();
-    });
-
-    restartButton.addEventListener('click', () => {
-      popup.style.display = "none";
-      statsMessage.innerHTML = '';
-      document.querySelector('.selection-container').style.display = 'block';
+      if (e.key === 'Backspace') {
+        // Gestione del backspace
+      } else if (e.key === 'Enter') {
+        // Gestione dell'invio
+      } else if (/^[a-zA-Z]$/.test(e.key)) {
+        // Gestione delle lettere
+      }
     });
 
     focusInput();
