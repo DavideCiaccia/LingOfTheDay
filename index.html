@@ -1,235 +1,86 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lingo Game</title>
-    <style>
-        /* General Styles */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-            background-color: #f8f8f8;
+<script>
+    let currentGuess = ""; // Mantiene traccia del tentativo attuale
+
+    // Gestione del tasto backspace e invio
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace") {
+            handleBackspace();
+        } else if (e.key === "Enter") {
+            handleEnter();
+        } else if (/^[a-z]$/i.test(e.key)) {
+            handleKeyPress(e.key.toLowerCase());
         }
+    });
 
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
+    function handleBackspace() {
+        if (currentGuess.length > 0) {
+            currentGuess = currentGuess.slice(0, -1);
+            updateWordContainer();
         }
+    }
 
-        h1 {
-            color: #333;
+    function handleEnter() {
+        if (currentGuess.length === currentWord.length) {
+            checkWord(currentGuess);
+        } else {
+            alert("Completa la parola prima di inviarla!");
         }
+    }
 
-        .difficulty {
-            margin: 20px 0;
+    function handleKeyPress(letter) {
+        if (currentGuess.length < currentWord.length) {
+            currentGuess += letter;
+            updateWordContainer();
         }
+    }
 
-        .word-container {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-        }
+    function updateWordContainer() {
+        const container = document.getElementById("word-container");
+        [...container.children].forEach((div, index) => {
+            div.innerText = currentGuess[index] ? currentGuess[index].toUpperCase() : "";
+        });
+    }
 
-        .word-container div {
-            width: 40px;
-            height: 40px;
-            border: 1px solid #ddd;
-            margin: 0 5px;
-            font-size: 24px;
-            font-weight: bold;
-            line-height: 40px;
-            text-align: center;
-            background-color: white;
-        }
-
-        /* Keyboard Styles */
-        .keyboard {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 20px auto;
-            max-width: 320px;
-        }
-
-        .key {
-            width: 40px;
-            height: 40px;
-            margin: 5px;
-            text-transform: uppercase;
-            font-size: 18px;
-            font-weight: bold;
-            background-color: #ddd;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .key.used {
-            background-color: #aaa;
-            cursor: not-allowed;
-        }
-
-        .key.correct {
-            background-color: green;
-            color: white;
-        }
-
-        .key.wrong {
-            background-color: red;
-            color: white;
-        }
-
-        .popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 300px;
-            padding: 20px;
-            background: white;
-            border: 2px solid #333;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .popup button {
-            margin-top: 10px;
-            padding: 10px;
-            background: #333;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Lingo Game</h1>
-        <div class="difficulty">
-            <label for="difficulty">Scegli la difficoltà:</label>
-            <select id="difficulty" onchange="startGame()">
-                <option value="5">5 lettere</option>
-                <option value="6">6 lettere</option>
-                <option value="7">7 lettere</option>
-            </select>
-        </div>
-        <div class="word-container" id="word-container"></div>
-        <div class="keyboard" id="keyboard"></div>
-    </div>
-    <div class="popup" id="popup">
-        <h3>Riepilogo Partita</h3>
-        <p id="summary"></p>
-        <button onclick="closePopup()">Chiudi</button>
-    </div>
-
-    <script>
-        // Database di parole (mocked)
-        const words = {
-            5: ["cielo", "fuoco", "piano", "notte", "tempo"],
-            6: ["danza", "fiore", "sogno", "carota", "fiamma"],
-            7: ["vacanza", "tessera", "cartone", "ananas", "stelle"]
-        };
-
-        let currentWord = "";
-        let attempts = 0;
-        let maxAttempts = 6;
-        let guessedLetters = [];
-        let stats = JSON.parse(localStorage.getItem('lingoStats')) || {
-            games: 0,
-            wins: 0,
-            firstTry: 0,
-            secondTry: 0
-        };
-
-        function startGame() {
-            const difficulty = document.getElementById("difficulty").value;
-            currentWord = words[difficulty][Math.floor(Math.random() * words[difficulty].length)];
-            console.log("Parola del giorno:", currentWord); // Debug
-            setupWordContainer(difficulty);
-            setupKeyboard();
-            guessedLetters = [];
-        }
-
-        function setupWordContainer(length) {
-            const container = document.getElementById("word-container");
-            container.innerHTML = "";
-            for (let i = 0; i < length; i++) {
-                const div = document.createElement("div");
-                div.id = `letter-${i}`;
-                container.appendChild(div);
-            }
-        }
-
-        function setupKeyboard() {
-            const keyboard = document.getElementById("keyboard");
-            keyboard.innerHTML = "";
-            const keys = "qwertyuiopasdfghjklzxcvbnm".split("");
-            keys.forEach((key) => {
-                const button = document.createElement("button");
-                button.innerText = key;
-                button.classList.add("key");
-                button.onclick = () => handleKeyPress(key);
-                keyboard.appendChild(button);
-            });
-        }
-
-        function handleKeyPress(letter) {
-            if (guessedLetters.includes(letter)) return;
-            guessedLetters.push(letter);
-
-            const keys = document.querySelectorAll(".key");
-            keys.forEach((key) => {
-                if (key.innerText === letter) {
-                    key.classList.add("used");
-                    if (currentWord.includes(letter)) {
-                        key.classList.add("correct");
-                    } else {
-                        key.classList.add("wrong");
-                    }
-                }
-            });
-
-            checkWord(letter);
-        }
-
-        function checkWord(letter) {
-            for (let i = 0; i < currentWord.length; i++) {
-                if (currentWord[i] === letter) {
-                    document.getElementById(`letter-${i}`).innerText = letter.toUpperCase();
-                }
-            }
-
-            if (guessedLetters.join("") === currentWord) {
-                endGame(true);
-            } else if (++attempts >= maxAttempts) {
+    function checkWord(guess) {
+        if (guess === currentWord) {
+            endGame(true);
+        } else {
+            attempts++;
+            if (attempts >= maxAttempts) {
                 endGame(false);
+            } else {
+                provideFeedback(guess);
+                currentGuess = ""; // Resetta il tentativo
+                updateWordContainer(); // Pulisce la UI
             }
         }
+    }
 
-        function endGame(win) {
-            stats.games++;
-            if (win) stats.wins++;
-            localStorage.setItem('lingoStats', JSON.stringify(stats));
-
-            const summary = document.getElementById("summary");
-            summary.innerHTML = `
-                Partite giocate: ${stats.games}<br>
-                Vittorie: ${stats.wins}<br>
-                Percentuale: ${(stats.wins / stats.games * 100).toFixed(2)}%
-            `;
-            document.getElementById("popup").style.display = "block";
+    function provideFeedback(guess) {
+        const feedback = [];
+        for (let i = 0; i < currentWord.length; i++) {
+            if (guess[i] === currentWord[i]) {
+                feedback.push("correct");
+            } else if (currentWord.includes(guess[i])) {
+                feedback.push("present");
+            } else {
+                feedback.push("absent");
+            }
         }
+        updateKeyboardFeedback(feedback, guess);
+    }
 
-        function closePopup() {
-            document.getElementById("popup").style.display = "none";
-            startGame();
+    function updateKeyboardFeedback(feedback, guess) {
+        const keys = document.querySelectorAll(".key");
+        for (let i = 0; i < guess.length; i++) {
+            const key = [...keys].find(k => k.innerText === guess[i].toUpperCase());
+            if (feedback[i] === "correct") {
+                key.classList.add("correct");
+            } else if (feedback[i] === "present") {
+                key.classList.add("present");
+            } else {
+                key.classList.add("wrong");
+            }
         }
-
-        startGame();
-    </script>
-</body>
-</html>
+    }
+</script>
