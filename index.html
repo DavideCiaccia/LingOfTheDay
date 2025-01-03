@@ -94,6 +94,15 @@
       font-size: 16px;
       cursor: pointer;
     }
+    #open-keyboard {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
 
     /* Adattamenti per schermi più piccoli */
     @media (max-width: 768px) {
@@ -126,6 +135,7 @@
   
   <div id="game-board" class="grid"></div>
   <div class="keyboard" id="keyboard"></div>
+  <button id="open-keyboard" onclick="focusInput()">Apri Tastiera</button>
   <div id="popup">
     <h2 id="popup-message"></h2>
     <p id="stats-message"></p>
@@ -169,14 +179,10 @@
     function startGame(length) {
       initializeDailyWords();
       wordOfTheDay = dailyWords[length];
-      if (wordOfTheDay.length !== length) {
-        alert("Errore: parola errata. Ricarica la pagina.");
-        return;
-      }
-
       document.querySelector('.selection-container').style.display = 'none';
       createGrid(length);
       createKeyboard();
+      focusInput();
     }
 
     function createGrid(length) {
@@ -210,6 +216,10 @@
       inputHelper.value = '';
       inputHelper.focus();
     }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Enter') focusInput();
+    });
 
     restartButton.addEventListener('click', () => {
       popup.style.display = "none";
