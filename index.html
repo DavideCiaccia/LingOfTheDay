@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lingo of the Day</title>
+  <title>Lingo Debug</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -61,122 +61,44 @@
       color: black;
       cursor: pointer;
     }
-    .key.used { background-color: gray; }
     #input-helper {
       position: absolute;
       top: -100px;
       opacity: 0;
     }
-    #popup {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: white;
-      padding: 20px;
-      border: 2px solid black;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      text-align: center;
-      z-index: 1000;
-    }
-    #popup h2 {
-      margin: 0 0 10px;
-    }
-    #popup button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #open-keyboard {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    @media (max-width: 768px) {
-      .key {
-        width: calc(10% - 5px);
-        height: 40px;
-        font-size: 14px;
-      }
-    }
-    @media (max-width: 480px) {
-      .key {
-        width: calc(12% - 5px);
-        height: 35px;
-        font-size: 12px;
-      }
-    }
   </style>
 </head>
 <body>
-  <h1>Lingo of the Day</h1>
-
-  <div class="selection-container">
-    <p>Seleziona il numero di lettere:</p>
-    <button onclick="startGame(5)">5 Lettere</button>
-    <button onclick="startGame(6)">6 Lettere</button>
-    <button onclick="startGame(7)">7 Lettere</button>
-  </div>
-
+  <h1>Lingo Debug</h1>
   <div id="game-board" class="grid"></div>
-  <div class="keyboard" id="keyboard"></div>
-  <button id="open-keyboard" onclick="focusInput()">Apri Tastiera</button>
-
-  <div id="popup">
-    <h2 id="popup-message"></h2>
-    <p id="stats-message"></p>
-    <button id="restart-button" onclick="resetGame()">Ricomincia</button>
-  </div>
-
+  <div id="keyboard" class="keyboard"></div>
   <input type="text" id="input-helper" maxlength="1" />
 
   <script>
     const board = document.getElementById('game-board');
     const keyboard = document.getElementById('keyboard');
     const inputHelper = document.getElementById('input-helper');
-    const popup = document.getElementById('popup');
-    const popupMessage = document.getElementById('popup-message');
-    const statsMessage = document.getElementById('stats-message');
 
-    const dailyWords = {
-      5: "tempo",
-      6: "strada",
-      7: "studente"
-    };
-
-    const stats = {
-      wins: { 5: 0, 6: 0, 7: 0 },
-      losses: { 5: 0, 6: 0, 7: 0 }
-    };
-
-    let wordLength = 0;
     let currentCellIndex = 0;
+    const gridSize = 5; // Numero di lettere
 
-    function startGame(length) {
-      wordLength = length;
-      createGrid(length);
-      createKeyboard();
+    // Crea la griglia
+    function createGrid() {
+      board.innerHTML = '';
+      board.style.gridTemplateColumns = `repeat(${gridSize}, 50px)`;
+      for (let i = 0; i < gridSize; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.id = `cell-${i}`;
+        board.appendChild(cell);
+      }
       focusInput();
     }
 
-    function createGrid(length) {
-      board.innerHTML = '';
-      board.style.gridTemplateColumns = `repeat(${length}, 50px)`;
-      for (let i = 0; i < length; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        board.appendChild(cell);
-      }
-    }
-
+    // Crea la tastiera virtuale
     function createKeyboard() {
-      keyboard.innerHTML = '';
       const rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+      keyboard.innerHTML = '';
       rows.forEach(row => {
         const rowDiv = document.createElement('div');
         rowDiv.className = 'keyboard-row';
@@ -184,21 +106,67 @@
           const key = document.createElement('div');
           key.className = 'key';
           key.textContent = letter.toUpperCase();
+          key.addEventListener('click', () => handleInput(letter.toUpperCase()));
           rowDiv.appendChild(key);
         });
         keyboard.appendChild(rowDiv);
       });
     }
 
+    // Mantieni il focus sull'input invisibile
     function focusInput() {
       inputHelper.value = '';
       inputHelper.focus();
     }
 
-    function resetGame() {
-      popup.style.display = 'none';
-      startGame(wordLength);
+    // Gestione dell'input
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace') {
+        deleteLetter();
+      } else if (e.key === 'Enter') {
+        submitAttempt();
+      } else if (/^[a-zA-Z]$/.test(e.key)) {
+        handleInput(e.key.toUpperCase());
+      }
+    });
+
+    // Funzione per gestire input (tastiera fisica e virtuale)
+    function handleInput(letter) {
+      if (currentCellIndex < gridSize) {
+        const cell = document.getElementById(`cell-${currentCellIndex}`);
+        cell.textContent = letter;
+        currentCellIndex++;
+      }
     }
+
+    // Cancella l'ultima lettera
+    function deleteLetter() {
+      if (currentCellIndex > 0) {
+        currentCellIndex--;
+        const cell = document.getElementById(`cell-${currentCellIndex}`);
+        cell.textContent = '';
+      }
+    }
+
+    // Gestisce il tentativo
+    function submitAttempt() {
+      if (currentCellIndex === gridSize) {
+        alert('Tentativo inviato!');
+        resetGame();
+      } else {
+        alert('Inserisci tutte le lettere!');
+      }
+    }
+
+    // Resetta il gioco
+    function resetGame() {
+      currentCellIndex = 0;
+      createGrid();
+    }
+
+    // Inizializza il gioco
+    createGrid();
+    createKeyboard();
   </script>
 </body>
 </html>
