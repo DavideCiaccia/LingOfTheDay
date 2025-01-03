@@ -224,7 +224,7 @@
         }
 
         function updateCurrentRow() {
-            const row = document.querySelector(`#row-${attempts}`);
+            const row = document.querySelector(`#grid .row:nth-child(${attempts + 1})`);
             const cells = row.querySelectorAll(".cell");
 
             cells.forEach((cell, index) => {
@@ -234,7 +234,7 @@
 
         function checkGuess() {
             const feedback = [];
-            const row = document.querySelector(`#row-${attempts}`);
+            const row = document.querySelector(`#grid .row:nth-child(${attempts + 1})`);
             const cells = row.querySelectorAll(".cell");
 
             currentGuess.split("").forEach((letter, index) => {
@@ -266,12 +266,18 @@
         }
 
         function updateKeyboardFeedback(letter, status) {
-            const key = document.querySelector(`.key:contains(${letter.toUpperCase()})`);
+            const key = document.querySelector(`.key:not(#enter):not(#backspace)[innerText='${letter.toUpperCase()}']`);
             if (key && !key.classList.contains("correct")) {
                 key.classList.remove("present", "wrong");
                 key.classList.add(status);
             }
         }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Backspace") handleBackspace();
+            else if (e.key === "Enter") handleEnter();
+            else if (/^[a-z]$/i.test(e.key)) handleKeyPress(e.key.toLowerCase());
+        });
 
         startGame();
     </script>
