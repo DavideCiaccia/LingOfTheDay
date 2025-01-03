@@ -53,8 +53,7 @@
     }
     .key {
       flex: 1;
-      padding: 10px;
-      width: 8%; /* Proporzione fissa per PC */
+      width: calc(8% + 2px);
       height: 45px;
       border: 1px solid #ccc;
       font-size: 16px;
@@ -64,6 +63,7 @@
       align-items: center;
       justify-content: center;
       color: black;
+      cursor: default;
     }
     .key.correct { background-color: green; color: white; }
     .key.present { background-color: orange; color: white; }
@@ -98,14 +98,14 @@
     /* Adattamenti per schermi più piccoli */
     @media (max-width: 768px) {
       .key {
-        width: calc(10% - 5px); /* Proporzioni per tablet */
+        width: calc(10% - 5px);
         height: 40px;
         font-size: 14px;
       }
     }
     @media (max-width: 480px) {
       .key {
-        width: calc(12% - 5px); /* Proporzioni per smartphone */
+        width: calc(12% - 5px);
         height: 35px;
         font-size: 12px;
       }
@@ -144,7 +144,7 @@
     const words = {
       5: ["donna", "piano", "volto", "gioco", "tempo"],
       6: ["tavola", "storia", "mondo", "parola", "strada"],
-      7: ["parlare", "scienze", "madonna", "studente"]
+      7: ["parlare", "scienze", "madonna"]
     };
 
     const dailyWords = {
@@ -159,14 +159,15 @@
       attempts: { 5: [], 6: [], 7: [] }
     };
 
-    function startGame(length) {
+    function initializeDailyWords() {
       const today = new Date().toDateString();
+      if (!dailyWords[5]) dailyWords[5] = words[5][Math.floor(Math.random() * words[5].length)];
+      if (!dailyWords[6]) dailyWords[6] = words[6][Math.floor(Math.random() * words[6].length)];
+      if (!dailyWords[7]) dailyWords[7] = words[7][Math.floor(Math.random() * words[7].length)];
+    }
 
-      // Selezione della parola giornaliera
-      if (!dailyWords[length]) {
-        dailyWords[length] = words[length][Math.floor(Math.random() * words[length].length)];
-      }
-
+    function startGame(length) {
+      initializeDailyWords();
       wordOfTheDay = dailyWords[length];
       if (wordOfTheDay.length !== length) {
         alert("Errore: parola errata. Ricarica la pagina.");
@@ -178,8 +179,45 @@
       createKeyboard();
     }
 
-    // Funzioni di traccia statistica e interfaccia (completamento richiesta)
-    // Gestione popup e focus input
+    function createGrid(length) {
+      board.innerHTML = '';
+      board.style.gridTemplateColumns = `repeat(${length}, 50px)`;
+      for (let i = 0; i < 6 * length; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        board.appendChild(cell);
+      }
+    }
+
+    function createKeyboard() {
+      keyboard.innerHTML = '';
+      const rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+      rows.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.classList.add('keyboard-row');
+        row.split('').forEach(letter => {
+          const key = document.createElement('div');
+          key.classList.add('key');
+          key.textContent = letter.toUpperCase();
+          key.id = `key-${letter}`;
+          rowDiv.appendChild(key);
+        });
+        keyboard.appendChild(rowDiv);
+      });
+    }
+
+    function focusInput() {
+      inputHelper.value = '';
+      inputHelper.focus();
+    }
+
+    restartButton.addEventListener('click', () => {
+      popup.style.display = "none";
+      statsMessage.innerHTML = '';
+      document.querySelector('.selection-container').style.display = 'block';
+    });
+
+    focusInput();
   </script>
 </body>
 </html>
