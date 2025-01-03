@@ -266,10 +266,13 @@
         }
 
         function updateKeyboardFeedback(letter, status) {
-            const key = document.querySelector(`.key:not(#enter):not(#backspace)[innerText='${letter.toUpperCase()}']`);
-            if (key && !key.classList.contains("correct")) {
-                key.classList.remove("present", "wrong");
-                key.classList.add(status);
+            const keys = document.querySelectorAll(".key");
+            const key = [...keys].find(k => k.innerText.toLowerCase() === letter.toLowerCase());
+            if (key) {
+                if (!key.classList.contains("correct")) {
+                    key.classList.remove("present", "wrong");
+                    key.classList.add(status);
+                }
             }
         }
 
